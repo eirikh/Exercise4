@@ -28,14 +28,15 @@ if (mpirank .eq. 0) then
       vector(i) = 1.0D0/(i*i)
    enddo
 
+   xsum(1) = vector(1)
+
    do i=1,mpisize-1
       call mpi_send(vector(i*chunk+1),chunk,mpi_real8,i,1,mpi_comm_world,ierr)
    enddo
 else
-   call mpi_recv(vector(mpirank*chunk+1),chunk,mpi_real8,0,1,mpi_comm_world,mpistatus,ierr)
+   call mpi_recv(vector(1),chunk,mpi_real8,0,1,mpi_comm_world,mpistatus,ierr)
 endif
 
-xsum(1) = vector(1)
 
 if (mpirank .eq. 0) then
    do i = 1,sumsize-log2(mpisize)
@@ -46,8 +47,7 @@ if (mpirank .eq. 0) then
    enddo
 else
    i=sumsize - log2(mpisize) +log2(mpirank) + 1
-   n=2**i
-   do j=n/2+1,n
+   do j=1,chunk
       xsum(i) = xsum(i) + vector(j)
    enddo
 endif
