@@ -3,7 +3,7 @@ program main_serial
 implicit none
 
 integer(kind=8) :: i,j,n
-integer(kind=8), parameter :: sumsize = 20
+integer(kind=8), parameter :: sumsize = 14
 integer(kind=8), parameter :: ndim = 2**sumsize 
 real(kind=8), parameter :: sinf = (4*datan(1.0d0))**2/6.0D0
 real(kind=8):: xerror(sumsize)
