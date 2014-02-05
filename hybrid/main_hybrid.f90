@@ -9,8 +9,9 @@ integer(kind=8), parameter :: ndim = 2**sumsize
 real(kind=8), parameter :: sinf = (4*datan(1.0d0))**2/6.0D0
 real(kind=8):: xerror(sumsize)
 real(kind=8):: vector(ndim)
-real(kind=8):: xsum(sumsize)
+real(kind=8):: xsum(sumsize),xtmp = 0
 real(kind=4):: wstart, wstop
+integer :: omp_get_num_threads, omp_get_thread_num
 integer :: ierr,mpisize,mpirank,mpistatus(mpi_status_size), log2
 
 call second(wstart)
@@ -41,21 +42,22 @@ endif
 
 
 if (mpirank .eq. 0) then
+!$omp parallel do schedule(static) private(j,n)
    do i = 1,sumsize-log2(mpisize)
-!$omp parallel do schedule(static)
       n=2**i
       do j=n/2+1,n
          xsum(i) = xsum(i) + vector(j)
       enddo
-!$omp end parallel do
    enddo
+!$omp end parallel do
 else
    i=sumsize - log2(mpisize) +log2(mpirank) + 1
-!$omp parallel do schedule(static)
+!$omp parallel do schedule(static) reduction(+:xtmp)
    do j=1,chunk
-      xsum(i) = xsum(i) + vector(j)
+      xtmp = xtmp + vector(j)
    enddo
 !$omp end parallel do
+   xsum(i) = xtmp
 endif
 
 if (mpirank .eq. 0) then
