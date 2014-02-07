@@ -72,11 +72,20 @@ In this exercise we have written a simple computer program that calculates the s
 \newpage
 
 \section{Introduction}
+The computer programs we have written perform the simple task of generating the vector:	
+	\begin{equation}
+	v_i = \frac{1}{i^2}, i=1,\ldots,n
+	\end{equation}
+and then summing the elements
+	\begin{equation}
+	S_n = \sum_{i=1}^{n}{v_i}
+	\end{equation}
+	
 
 \section{Results}
 
 \section{Discussion and Conclusions}
-
+As seen in Table~\ref{tab:results} the parallel and serial versions of the code yield exactly the same result (to double precision). This makes sense as the operations carried out are exactly the same. The elements of the vectors and the partial sums are communicated using the same precision as they are calculated with. The distribution of the vector v from process 0 the others can be done in several wasy, the two most obvious are MPI\_SEND and MPI\_SCATTER. I am not sure which of these are computationally cheaper, however, since scatter is conceptually simpler we have chosen to use that. Scatter distributes the elements of the vector v evenly to all the processes. The code is also simplified as we remove a loop and the calls to MPI\_RECV. To collect the sum of the vector elements from each process we employ MPI\_REDUCE.
 \bibliography{master}
 
 \end{document}
