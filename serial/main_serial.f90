@@ -38,7 +38,7 @@ write(6,*) 'time',wstop-wstart
 
 !Output
 do i = 3,sumsize
-   write(*,*) xsum(i), xerror(i), (xsum(i) + xerror(i))
+   write(*,"(3F25.20)") xsum(i), xerror(i), (xsum(i) + xerror(i))
 enddo
 
 end program

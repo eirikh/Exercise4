@@ -71,9 +71,9 @@ else
 endif
 
 if (mpirank .eq. 0) then
-   call mpi_reduce(mpi_in_place,xsum(1),sumsize,mpi_real8,mpi_sum,0,mpi_comm_world,ierr)
+   call mpi_reduce(mpi_in_place,xsum,sumsize,mpi_real8,mpi_sum,0,mpi_comm_world,ierr)
 else
-   call mpi_reduce(xsum(1),xsum(1),sumsize,mpi_real8,mpi_sum,0,mpi_comm_world,ierr)
+   call mpi_reduce(xsum,mpi_in_place,sumsize,mpi_real8,mpi_sum,0,mpi_comm_world,ierr)
 endif
 
 if (mpirank .eq. 0) then
@@ -85,10 +85,10 @@ if (mpirank .eq. 0) then
 
    !Output
    call second(wstop)
-   write(6,*) 'time',wstop-wstart
+   write(*,*) 'time',wstop-wstart
    if (mpirank .eq. 0) then
       do i = 3,sumsize
-         write(*,*) xsum(i), xerror(i), (xsum(i) + xerror(i))
+         write(*,"(3F25.20)") xsum(i), xerror(i), (xsum(i) + xerror(i))
       enddo
    endif
 
