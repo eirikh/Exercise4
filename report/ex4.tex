@@ -2,7 +2,7 @@
 \documentclass[english,12pt]{article}
 \usepackage{amsmath,epsfig}
 \usepackage[latin1]{inputenc}
-\usepackage{calc, epsfig, rotating, amsmath, boxedminipage}
+\usepackage{calc, epsfig, rotating, amsmath}
 \usepackage[T1]{fontenc}
 \usepackage{babel}
 \usepackage{textcomp} 
@@ -66,7 +66,7 @@
 
 \begin{center}
 \section*{Summary}
-In this exercise we have written a simple computer program that calculates the sum of the infitine series $S = \sum_{n=1}^{\infty}{\frac{1}{n^2}}$. This is referred to as the \emph{Basel problem} after the hometown of Leonhard Euler, the first who was able to show that the sum converges to $\frac{\pi^2}{6}$. Four versions of the computer program have been tested; a serial version, a parallelized code using OpenMP, a parallelized code using MPI and lastly a code using OpenMP and MPI in combination. We discuss the advantages and disadvantages of the versions of the program in terms of memory usage and efficiency. 
+In this exercise we have written a simple computer program that calculates the sum of the infinite series $S = \sum_{n=1}^{\infty}{\frac{1}{n^2}}$. This is referred to as the \emph{Basel problem} after the hometown of Leonhard Euler, the first who was able to show that the sum converges to $\frac{\pi^2}{6}$. Four versions of the computer program have been tested; a serial version, a parallelized code using OpenMP, a parallelized code using MPI and lastly a code using OpenMP and MPI in combination. We discuss the advantages and disadvantages of the versions of the program in terms of memory usage and efficiency. 
 \end{center}
 
 \newpage
@@ -80,12 +80,26 @@ and then summing the elements
 	\begin{equation}
 	S_n = \sum_{i=1}^{n}{v_i}
 	\end{equation}
-	
+
+We have implemented a computer code in Fortran which calculates $S_n$ for a given value of $n$ in serial, using MPI, using OpenMP and using OpenMP and MPI in combination. Below we display the sums $S_n$ for values og $n = 2^k$ where $k = 3,\ldots,14$ and provide timings for the various versions of the program.	
 
 \section{Results}
+Table: Results
+
+Table: Times
 
 \section{Discussion and Conclusions}
-As seen in Table~\ref{tab:results} the parallel and serial versions of the code yield exactly the same result (to double precision). This makes sense as the operations carried out are exactly the same. The elements of the vectors and the partial sums are communicated using the same precision as they are calculated with. The distribution of the vector v from process 0 the others can be done in several wasy, the two most obvious are MPI\_SEND and MPI\_SCATTER. I am not sure which of these are computationally cheaper, however, since scatter is conceptually simpler we have chosen to use that. Scatter distributes the elements of the vector v evenly to all the processes. The code is also simplified as we remove a loop and the calls to MPI\_RECV. To collect the sum of the vector elements from each process we employ MPI\_REDUCE.
+The serial and OpenMP/MPI hybrid codes are submitted along with the report onlie. The code compiles and works both on our personal computer and on Stallo. In the following section we discuss the results and the aspects mentioned in the exercise.
+	
+In MPI, the distribution of the vector \emph{v} from process 0 the others can be done in several ways, the two most obvious are MPI\_SEND and MPI\_SCATTER. MPI\_SCATTER is easier to use and, depending on the mpi implementation should be faster, as it allows for optimization~\cite{el-nashar}. Scatter distributes the elements of the vector \emph{v} evenly to all the processes. The code is also simplified as we remove a loop and the calls to MPI\_RECV. To collect the sum of the vector elements from each process we employ MPI\_REDUCE, as some of the elements must be summed.
+
+As seen in Table~\ref{tab:results} the parallel and serial versions of the code yield exactly the same result. We have chosen an implementation where the highest value of $n$ is hard-coded in the program and the program then calculates every partial sum for all the values of $n$ up to the one specified. The partial sums of every value of $n$ is then reused which means all the sums are calculated the same way every time. We have chosen this implementation because this allows us to follow the convergence without re-running the program for every value of $n$ up to the one we are interested in. By storing all the partial sums, we use a bit more memory, however this is negligble. An advantage of this implementation is that the convergence rate is automatically provided.
+
+The vector \emph{v} is generated using 1 floating point operation per element (the denominator is always and integer. Adding the elements to form the sum $S_n$ requires $n-1$ floating point operations. In the way the MPI-implementation is described in task 3, the program is not load balanced. The majority of the floating point operations are carried out on processor 0 while only the summation is divided between the processors. Because of the simple form of the vector one could easily envision an implementation where the vector elements are also calculated on each processor with minimal information sent to each node (each processor could determine which vector elements it owns based on the value of n, its rank and the size of MPI\_COMM\_WORLD). Since the highest value of $n$ is specified as a global variable in the program, this structure would eliminate the need to send information from processor 0 to the others.
+
+In the serial code, the whole vector v must be stored, along with an array of the partial sums. The number of partial sums is neglible compared to the vector itself when we only consider sums for $n=2^k$.  Doing the calculation in parallel with MPI requires one new array to be allocated where the vector received from MPI\_SCATTER is stored. Every element of the vector $v$ then exists in two locations which means that the MPI code requires twice the amount of memory as the serial version when the number of elements of the vector becomes large.
+
+In this program there are two loops, one where the elements of $v$ are calculated and one where they are added. The first loop is perfectly independent and can very efficiently be parallelized. The second loop is also suitable for parallelization since each processor can calculate its own partial sum. This is then clearly a case of \emph{data parallelism}. As mentioned above, the current implementation is not load balanced and these issues will have to be corrected before parallelization becomes truly efficient. Another aspect is the size of the problem. There is an overhead to be paid when parallelizing the code and for the low number of elements in v used here (<$2^14+1$), the benefit from parallelization is not greater than the cost of sending information between processors, as clearly seen in Table~\ref{tab:times}. This could be different when looking at larger vectors and a better implementation. The mathematics of the Basel problem constitutes very few FLOP per element of the vector. One could then argue that a distributed memory implementation would alleviate memory problems associated with very, very large values of $n$. However, with the rapid convergence of this series, calculating the sum with enough elements to exceed the storage of a normal computer would be ridiculous and not lead to any gains in accuracy. 
 \bibliography{master}
 
 \end{document}
