@@ -23,7 +23,7 @@ xsum(1) = vector(1)
 
 do i = 1,sumsize
    n=2**i
-   do j=n/2+1,n
+   do j=n,n/2+1,-1
       xsum(i) = xsum(i) + vector(j)
    enddo
 enddo

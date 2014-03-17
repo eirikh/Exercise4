@@ -128,7 +128,7 @@ We have implemented a computer code in Fortran which calculates $S_n$ for a give
 \end{table}%
 
 \section{Discussion and Conclusions}
-The serial and OpenMP/MPI hybrid codes are submitted along with the report onlie. The code compiles and works both on our personal computer and on Stallo. In the following section we discuss the results and the aspects mentioned in the exercise.
+The serial and OpenMP/MPI hybrid codes are submitted along with the report online. The code compiles and works both on our personal computer and on Stallo. In the following section we discuss the results and the aspects mentioned in the exercise.
 	
 In MPI, the distribution of the vector \emph{v} from process 0 the others can be done in several ways, the two most obvious are MPI\_SEND and MPI\_SCATTER. MPI\_SCATTER is easier to use and, depending on the mpi implementation should be faster, as it allows for optimization~\cite{el-nashar}. Scatter distributes the elements of the vector \emph{v} evenly to all the processes. The code is also simplified as we remove a loop and the calls to MPI\_RECV. To collect the sum of the vector elements from each process we employ MPI\_REDUCE, as some of the elements must be summed.
 
